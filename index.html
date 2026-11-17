@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CyberTotal - Threat &amp; Antivirus Vendor Intelligence</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-[#0a0f1d] text-slate-100 min-h-screen flex flex-col font-sans">
+
+  <!-- Navbar -->
+  <nav class="border-b border-slate-800 bg-[#0f172a] px-8 py-3.5 flex justify-between items-center">
+    <div class="flex items-center space-x-3">
+      <div class="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white font-black text-lg shadow-md shadow-blue-500/20">
+        VT
+      </div>
+      <div>
+        <span class="text-lg font-bold tracking-tight text-white">Cyber<span class="text-blue-500">Total</span></span>
+        <span class="text-[10px] ml-2 px-2 py-0.5 rounded bg-blue-950 text-blue-300 border border-blue-800">Forensics &amp; Engine Aggregator</span>
+      </div>
+    </div>
+    <div class="text-xs text-slate-400 font-mono">
+      <i class="fa-solid fa-shield-halved text-emerald-400 mr-1.5"></i>Commercial &amp; Static Feeds Active
+    </div>
+  </nav>
+
+  <!-- Sub Header -->
+  <div class="max-w-5xl mx-auto w-full pt-8 pb-4 text-center">
+    <h1 class="text-3xl font-extrabold text-white tracking-tight">Security Vendor &amp; Threat Intelligence Engine</h1>
+    <p class="text-slate-400 text-xs mt-1.5">Comprehensive multiscanner evaluation, threat categorization, and file dissection.</p>
+  </div>
+
+  <main class="max-w-5xl mx-auto w-full px-4 flex-1">
+    <!-- Navigation Tabs -->
+    <div class="flex justify-center border-b border-slate-800 mb-6 space-x-8">
+      <button onclick="switchTab('file')" id="tabBtn-file" class="tab-btn flex items-center space-x-2 pb-3 border-b-2 border-blue-500 text-blue-400 font-semibold text-xs tracking-wide">
+        <i class="fa-solid fa-file-arrow-up"></i>
+        <span>FILE SCAN</span>
+      </button>
+      <button onclick="switchTab('url')" id="tabBtn-url" class="tab-btn flex items-center space-x-2 pb-3 border-b-2 border-transparent text-slate-400 hover:text-slate-200 font-semibold text-xs tracking-wide">
+        <i class="fa-solid fa-globe"></i>
+        <span>URL ANALYSIS</span>
+      </button>
+      <button onclick="switchTab('search')" id="tabBtn-search" class="tab-btn flex items-center space-x-2 pb-3 border-b-2 border-transparent text-slate-400 hover:text-slate-200 font-semibold text-xs tracking-wide">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <span>SEARCH / HASH / IP</span>
+      </button>
+    </div>
+
+    <!-- Tab 1: File -->
+    <div id="tab-file" class="tab-pane">
+      <div id="dropzone" class="border-2 border-dashed border-slate-700 hover:border-blue-500 rounded-2xl p-10 text-center cursor-pointer transition bg-[#11192e] shadow-lg">
+        <input type="file" id="fileInput" class="hidden">
+        <div class="w-14 h-14 rounded-full bg-blue-500/10 text-blue-400 flex items-center justify-center mx-auto mb-3 text-2xl">
+          <i class="fa-solid fa-cloud-arrow-up"></i>
+        </div>
+        <p class="text-sm text-slate-200 font-medium">Select or drop a file to run complete multi-vendor diagnostics</p>
+        <p class="text-xs text-slate-500 mt-1">PE Executables, Office Macro Docs, PDFs, Archives</p>
+      </div>
+    </div>
+
+    <!-- Tab 2: URL -->
+    <div id="tab-url" class="tab-pane hidden">
+      <form onsubmit="handleUrlSubmit(event)" class="bg-[#11192e] p-5 rounded-2xl border border-slate-800">
+        <div class="flex items-center bg-[#0a0f1d] rounded-xl border border-slate-700 px-4 py-2.5 focus-within:border-blue-500">
+          <i class="fa-solid fa-link text-slate-500 mr-3 text-sm"></i>
+          <input type="text" id="urlInput" placeholder="https://example.com/test-path" required class="bg-transparent w-full focus:outline-none text-xs text-slate-200">
+          <button type="submit" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold px-4 py-2 rounded-lg transition ml-2">
+            Scan URL
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Tab 3: Search -->
+    <div id="tab-search" class="tab-pane hidden">
+      <form onsubmit="handleSearchSubmit(event)" class="bg-[#11192e] p-5 rounded-2xl border border-slate-800">
+        <div class="flex items-center bg-[#0a0f1d] rounded-xl border border-slate-700 px-4 py-2.5 focus-within:border-blue-500">
+          <i class="fa-solid fa-magnifying-glass text-slate-500 mr-3 text-sm"></i>
+          <input type="text" id="searchInput" placeholder="Enter MD5, SHA-256, domain or IP address..." required class="bg-transparent w-full focus:outline-none text-xs text-slate-200">
+          <button type="submit" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold px-4 py-2 rounded-lg transition ml-2">
+            Query Feed
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Loader -->
+    <div id="loader" class="hidden text-center py-12">
+      <i class="fa-solid fa-circle-notch fa-spin text-3xl text-blue-500 mb-3"></i>
+      <p class="text-xs text-slate-400">Querying security vendors and extracting structural metadata...</p>
+    </div>
+
+    <!-- RESULTS PANEL -->
+    <div id="results" class="hidden my-6 space-y-6">
+
+      <!-- Summary Banner -->
+      <div class="bg-[#11192e] border border-slate-800 rounded-2xl p-6 shadow-xl">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div>
+            <div class="flex items-center space-x-3">
+              <h2 id="resTarget" class="text-lg font-bold text-white break-all"></h2>
+              <span id="resTypeBadge" class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-slate-700"></span>
+            </div>
+            <div class="text-xs text-slate-400 mt-1 flex items-center gap-4">
+              <span>Scanned on: <span id="resScanDate" class="text-slate-200 font-mono"></span></span>
+              <span>Shannon Entropy: <span id="resEntropy" class="text-slate-200 font-mono">N/A</span></span>
+            </div>
+          </div>
+
+          <!-- Overall Ratio Meter -->
+          <div class="flex items-center space-x-4 bg-[#0a0f1d] px-5 py-3 rounded-xl border border-slate-800">
+            <div class="text-right">
+              <div class="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Detection Ratio</div>
+              <div id="detectionVerdict" class="text-xs font-bold text-emerald-400">NO ENGINES FLAGGED</div>
+            </div>
+            <div id="scoreBadge" class="text-2xl font-black px-4 py-1.5 rounded-lg bg-emerald-950/60 text-emerald-400 border border-emerald-800 font-mono">
+              0 / 14
+            </div>
+          </div>
+        </div>
+
+        <!-- Metric Cards -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mt-6 pt-5 border-t border-slate-800/80">
+          <div class="bg-[#0a0f1d] p-3 rounded-xl border border-slate-800/80">
+            <div class="text-xs text-red-400 font-semibold flex items-center">
+              <i class="fa-solid fa-bug mr-2"></i>Malicious
+            </div>
+            <div id="statMalicious" class="text-xl font-bold font-mono text-slate-100 mt-1">0</div>
+          </div>
+
+          <div class="bg-[#0a0f1d] p-3 rounded-xl border border-slate-800/80">
+            <div class="text-xs text-yellow-400 font-semibold flex items-center">
+              <i class="fa-solid fa-triangle-exclamation mr-2"></i>Suspicious
+            </div>
+            <div id="statSuspicious" class="text-xl font-bold font-mono text-slate-100 mt-1">0</div>
+          </div>
+
+          <div class="bg-[#0a0f1d] p-3 rounded-xl border border-slate-800/80">
+            <div class="text-xs text-emerald-400 font-semibold flex items-center">
+              <i class="fa-solid fa-circle-check mr-2"></i>Harmless
+            </div>
+            <div id="statHarmless" class="text-xl font-bold font-mono text-slate-100 mt-1">0</div>
+          </div>
+
+          <div class="bg-[#0a0f1d] p-3 rounded-xl border border-slate-800/80">
+            <div class="text-xs text-slate-400 font-semibold flex items-center">
+              <i class="fa-solid fa-shield-cat mr-2"></i>Undetected
+            </div>
+            <div id="statUndetected" class="text-xl font-bold font-mono text-slate-100 mt-1">0</div>
+          </div>
+        </div>
+
+        <!-- Hashes Section -->
+        <div id="hashesSection" class="mt-4 pt-4 border-t border-slate-800/80 grid grid-cols-1 md:grid-cols-3 gap-3 text-xs font-mono">
+          <div class="bg-[#0a0f1d] p-3 rounded-lg border border-slate-800/80">
+            <div class="text-slate-500 font-semibold mb-1">MD5</div>
+            <div id="hashMd5" class="text-slate-300 truncate">N/A</div>
+          </div>
+          <div class="bg-[#0a0f1d] p-3 rounded-lg border border-slate-800/80">
+            <div class="text-slate-500 font-semibold mb-1">SHA-1</div>
+            <div id="hashSha1" class="text-slate-300 truncate">N/A</div>
+          </div>
+          <div class="bg-[#0a0f1d] p-3 rounded-lg border border-slate-800/80">
+            <div class="text-slate-500 font-semibold mb-1">SHA-256</div>
+            <div id="hashSha256" class="text-slate-300 truncate">N/A</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Security Vendor Breakdown Grid -->
+      <div class="bg-[#11192e] border border-slate-800 rounded-2xl p-6 shadow-xl">
+        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-300 mb-4 flex items-center justify-between">
+          <span><i class="fa-solid fa-list-check mr-2 text-blue-500"></i>Security Vendors Analysis</span>
+          <span class="text-[10px] text-slate-500 font-normal">Antivirus &amp; Behavioral Signatures</span>
+        </h3>
+        <div id="vendorsGrid" class="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs"></div>
+      </div>
+
+      <!-- Static Forensics Detail -->
+      <div class="bg-[#11192e] border border-slate-800 rounded-2xl p-6 shadow-xl">
+        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-300 mb-3 flex items-center">
+          <i class="fa-solid fa-code-branch mr-2 text-blue-500"></i>Forensic Dissection &amp; Indicators
+        </h3>
+        <pre id="rawReport" class="bg-[#0a0f1d] p-4 rounded-xl text-xs font-mono text-emerald-400 border border-slate-800 overflow-x-auto max-h-72"></pre>
+      </div>
+
+    </div>
+  </main>
+
+  <script>
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-pane').forEach(el => el.classList.add('hidden'));
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('border-blue-500', 'text-blue-400');
+        btn.classList.add('border-transparent', 'text-slate-400');
+      });
+      document.getElementById('tab-' + tabId).classList.remove('hidden');
+      const activeBtn = document.getElementById('tabBtn-' + tabId);
+      activeBtn.classList.add('border-blue-500', 'text-blue-400');
+      activeBtn.classList.remove('border-transparent', 'text-slate-400');
+    }
+
+    const dropzone = document.getElementById('dropzone');
+    const fileInput = document.getElementById('fileInput');
+
+    dropzone.onclick = () => fileInput.click();
+    fileInput.onchange = (e) => uploadFile(e.target.files[0]);
+
+    dropzone.ondragover = (e) => { e.preventDefault(); dropzone.classList.add('border-blue-400'); };
+    dropzone.ondragleave = () => { dropzone.classList.remove('border-blue-400'); };
+    dropzone.ondrop = (e) => {
+      e.preventDefault();
+      dropzone.classList.remove('border-blue-400');
+      if (e.dataTransfer.files.length > 0) uploadFile(e.dataTransfer.files[0]);
+    };
+
+    function showLoader(show) {
+      document.getElementById('loader').classList.toggle('hidden', !show);
+      if (show) document.getElementById('results').classList.add('hidden');
+    }
+
+    async function uploadFile(file) {
+      if (!file) return;
+      showLoader(true);
+      const formData = new FormData();
+      formData.append('file', file);
+      try {
+        const res = await fetch('/api/scan/file', { method: 'POST', body: formData });
+        renderResults(await res.json());
+      } catch (err) {
+        alert('Server unreachable on port 8000.');
+      } finally {
+        showLoader(false);
+      }
+    }
+
+    async function handleUrlSubmit(e) {
+      e.preventDefault();
+      showLoader(true);
+      const formData = new FormData();
+      formData.append('url', document.getElementById('urlInput').value);
+      try {
+        const res = await fetch('/api/scan/url', { method: 'POST', body: formData });
+        renderResults(await res.json());
+      } catch (err) {
+        alert('Analysis request failed.');
+      } finally {
+        showLoader(false);
+      }
+    }
+
+    async function handleSearchSubmit(e) {
+      e.preventDefault();
+      showLoader(true);
+      const formData = new FormData();
+      formData.append('query', document.getElementById('searchInput').value);
+      try {
+        const res = await fetch('/api/scan/search', { method: 'POST', body: formData });
+        renderResults(await res.json());
+      } catch (err) {
+        alert('Analysis request failed.');
+      } finally {
+        showLoader(false);
+      }
+    }
+
+    function renderResults(data) {
+      document.getElementById('results').classList.remove('hidden');
+      document.getElementById('resTarget').textContent = data.target;
+      document.getElementById('resTypeBadge').textContent = data.type;
+      document.getElementById('resScanDate').textContent = data.scan_date || 'N/A';
+      document.getElementById('resEntropy').textContent = data.entropy !== undefined ? data.entropy.toString() : 'N/A';
+
+      if (data.hashes && Object.keys(data.hashes).length > 0) {
+        document.getElementById('hashesSection').classList.remove('hidden');
+        document.getElementById('hashMd5').textContent = data.hashes.md5 || 'N/A';
+        document.getElementById('hashSha1').textContent = data.hashes.sha1 || 'N/A';
+        document.getElementById('hashSha256').textContent = data.hashes.sha256 || 'N/A';
+      } else {
+        document.getElementById('hashesSection').classList.add('hidden');
+      }
+
+      const intel = data.intelligence || {};
+      const stats = intel.stats || { malicious: 0, suspicious: 0, harmless: 0, undetected: 0 };
+      document.getElementById('statMalicious').textContent = stats.malicious || 0;
+      document.getElementById('statSuspicious').textContent = stats.suspicious || 0;
+      document.getElementById('statHarmless').textContent = stats.harmless || 0;
+      document.getElementById('statUndetected').textContent = stats.undetected || 0;
+
+      const malicious = stats.malicious || 0;
+      const total = (stats.malicious || 0) + (stats.suspicious || 0) + (stats.harmless || 0) + (stats.undetected || 0) || 14;
+
+      const scoreBadge = document.getElementById('scoreBadge');
+      const verdict = document.getElementById('detectionVerdict');
+      scoreBadge.textContent = `${malicious} / ${total}`;
+
+      if (malicious > 0) {
+        verdict.textContent = "SECURITY RISKS DETECTED";
+        verdict.className = "text-xs font-bold text-red-400";
+        scoreBadge.className = "text-2xl font-black px-4 py-1.5 rounded-lg bg-red-950/60 text-red-400 border border-red-800 font-mono";
+      } else {
+        verdict.textContent = "NO ENGINES FLAGGED";
+        verdict.className = "text-xs font-bold text-emerald-400";
+        scoreBadge.className = "text-2xl font-black px-4 py-1.5 rounded-lg bg-emerald-950/60 text-emerald-400 border border-emerald-800 font-mono";
+      }
+
+      const vendorsGrid = document.getElementById('vendorsGrid');
+      vendorsGrid.innerHTML = '';
+      const engines = intel.engine_results || {};
+
+      Object.keys(engines).forEach(vendorKey => {
+        const vendor = engines[vendorKey];
+        const category = vendor.category || 'undetected';
+        const item = document.createElement('div');
+        item.className = "flex items-center justify-between p-2.5 rounded-lg bg-[#0a0f1d] border border-slate-800/80";
+
+        let badge = '<span class="text-slate-500 font-mono text-[11px]"><i class="fa-solid fa-circle-check text-emerald-500/60 mr-1.5"></i>Clean</span>';
+        if (category === 'malicious') {
+          badge = `<span class="text-red-400 font-bold font-mono text-[11px]"><i class="fa-solid fa-circle-xmark mr-1.5"></i>${vendor.result || 'Malicious'}</span>`;
+        } else if (category === 'suspicious') {
+          badge = `<span class="text-yellow-400 font-bold font-mono text-[11px]"><i class="fa-solid fa-triangle-exclamation mr-1.5"></i>${vendor.result || 'Suspicious'}</span>`;
+        }
+
+        item.innerHTML = `
+          <div class="flex items-center space-x-2">
+            <span class="font-semibold text-slate-200">${vendor.engine_name || vendorKey}</span>
+            <span class="text-[10px] text-slate-500">(${vendor.method || 'Engine'})</span>
+          </div>
+          <div>${badge}</div>
+        `;
+        vendorsGrid.appendChild(item);
+      });
+
+      document.getElementById('rawReport').textContent = JSON.stringify(data.forensics, null, 2);
+    }
+  </script>
+</body>
+</html>
